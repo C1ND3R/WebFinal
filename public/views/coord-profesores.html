@@ -1,0 +1,135 @@
+<!-- public/views/coord-profesores.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Coordinador – Profesores a Cargo</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="dashboard.html">Sistema de Seguimiento a Profesores</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="coord-profesores.html">Profesores</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <button id="logout-btn" class="btn btn-outline-light">Cerrar Sesión</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
+    <h2>Profesores Asignados</h2>
+    <p>Aquí puede ver los profesores a su cargo, agregar nuevos profesores y registrar comentarios.</p>
+
+    <!-- Botón para abrir modal de Asignar Profesor -->
+    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalAsignarProfesor">
+      Asignar Profesor
+    </button>
+
+    <!-- Tabla de profesores a cargo -->
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Profesor</th>
+          <th>Comentarios</th>
+          <th>Última Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Se cargará dinámicamente :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1} -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal Asignar Profesor (sin cambios) :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3} -->
+  <div class="modal fade" id="modalAsignarProfesor" tabindex="-1" aria-labelledby="modalAsignarProfesorLabel" aria-hidden="true">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="modalAsignarProfesorLabel">Asignar Profesor a Coordinador</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="selectProfesor" class="form-label">Profesor</label>
+            <select class="form-select" id="selectProfesor"></select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button class="btn btn-primary">Asignar</button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Modal Nuevo Comentario (modificado) -->
+  <div class="modal fade" id="modalNuevoComentario" tabindex="-1" aria-labelledby="modalNuevoComentarioLabel" aria-hidden="true">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="modalNuevoComentarioLabel">Agregar Comentario</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <!-- Selector de trayectorias -->
+          <div class="mb-3">
+            <label for="selectTrayectoria" class="form-label">Trayectoria</label>
+            <select class="form-select" id="selectTrayectoria" required>
+              <option value="" disabled selected>Seleccione una trayectoria</option>
+            </select>
+          </div>
+          <!-- Campo de puntuación -->
+          <div class="mb-3">
+            <label for="puntuacion" class="form-label">Puntuación (0–10)</label>
+            <input type="number" class="form-control" id="puntuacion" min="0" max="10" required>
+          </div>
+          <!-- Campo de comentario -->
+          <div class="mb-3">
+            <label for="comentario" class="form-label">Comentario</label>
+            <textarea class="form-control" id="comentario" rows="4" required></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button class="btn btn-primary">Guardar Comentario</button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Modal Historial de Comentarios (sin cambios) :contentReference[oaicite:4]{index=4}:contentReference[oaicite:5]{index=5} -->
+  <div class="modal fade" id="modalHistorialComentarios" tabindex="-1" aria-labelledby="modalHistorialComentariosLabel" aria-hidden="true">
+    <div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="modalHistorialComentariosLabel">Historial de Comentarios</h1>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-group"></ul>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/auth-utils.js"></script>
+  <script src="../js/coord-profesores.js"></script>
+</body>
+</html>
