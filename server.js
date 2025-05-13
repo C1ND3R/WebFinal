@@ -17,18 +17,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir archivos estáticos
+// Servir toda la carpeta public (js, css, imágenes, vistas, etc.)
 app.use(express.static(path.join(__dirname, 'public')));
-// Si quieres exponer tus vistas HTML directamente:
-app.use('/views', express.static(path.join(__dirname, 'views')));
+
+// Si alguien pide /, le devolvemos el index de tu front
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'views', 'index.html'));
+});
 
 // Conexión a MongoDB
 mongoose.connect(
-  process.env.MONGODB_URI || 'mongodb://localhost:27017/seguimiento_profesores',
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  }
+  process.env.MONGODB_URI,
+  { useNewUrlParser: true, useUnifiedTopology: true }
 )
 .then(() => console.log('Conexión a MongoDB establecida'))
 .catch(err => console.error('Error de conexión a MongoDB:', err));
@@ -42,29 +42,15 @@ const asignaturasRoutes  = require('./routes/asignaturas');
 const profesoresRoutes   = require('./routes/profesores');
 const evaluacionesRoutes = require('./routes/evaluaciones');
 
-// Montar rutas
+// Montar rutas de API
 app.use('/api/auth',        authRoutes);
 app.use('/api/asignaturas',  authenticateToken, asignaturasRoutes);
 app.use('/api/profesores',   authenticateToken, profesoresRoutes);
 app.use('/api/evaluaciones', authenticateToken, evaluacionesRoutes);
 
-// Ruta raíz
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Bienvenido a la API de Seguimiento a Profesores',
-    version: '1.0.0',
-    endpoints: {
-      auth:        '/api/auth',
-      asignaturas: '/api/asignaturas',
-      profesores:  '/api/profesores',
-      evaluaciones:'/api/evaluaciones'
-    }
-  });
-});
-
-// 404 para rutas no definidas
-app.use((req, res) => {
-  res.status(404).json({ message: 'Ruta no encontrada' });
+// 404 para rutas de API no definidas
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ message: 'Endpoint no encontrado' });
 });
 
 // Middleware de manejo de errores
