@@ -11,12 +11,26 @@
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="dashboard.html">Mi Proyecto</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="admin-usuarios.html">Usuarios</a></li>
+          <li class="nav-item"><a class="nav-link active" href="admin-asignaturas.html">Asignaturas</a></li>
+          <li class="nav-item"><a class="nav-link" href="admin-profesores.html">Profesores</a></li>
+          <li class="nav-item"><a class="nav-link" href="reportes.html">Reportes</a></li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item"><button id="logout-btn" class="btn btn-outline-light">Cerrar Sesión</button></li>
+        </ul>
+      </div>
     </div>
   </nav>
 
   <div class="container mt-4">
     <h2>Gestión de Asignaturas</h2>
-    <p>Aquí se gestionan las asignaturas (altas, bajas, modificaciones, consultas).</p>
+    <p>Aquí se gestionan las asignaturas (altas, bajas, modificaciones).</p>
 
     <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalCrearAsignatura">
       Crear Asignatura
@@ -26,14 +40,15 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Nombre Asignatura</th>
+          <th>Código</th>
+          <th>Nombre</th>
           <th>Descripción</th>
           <th>Créditos</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Las filas se actualizarán dinámicamente -->
+        <!-- Se cargan con JS -->
       </tbody>
     </table>
   </div>
@@ -44,13 +59,17 @@
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="modalCrearAsignaturaLabel">Crear Nueva Asignatura</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <form>
             <div class="mb-3">
+              <label for="codigoAsignatura" class="form-label">Código</label>
+              <input type="text" class="form-control" id="codigoAsignatura" required>
+            </div>
+            <div class="mb-3">
               <label for="nombreAsignatura" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="nombreAsignatura">
+              <input type="text" class="form-control" id="nombreAsignatura" required>
             </div>
             <div class="mb-3">
               <label for="descripcionAsignatura" class="form-label">Descripción</label>
@@ -58,7 +77,7 @@
             </div>
             <div class="mb-3">
               <label for="creditosAsignatura" class="form-label">Créditos</label>
-              <input type="number" class="form-control" id="creditosAsignatura">
+              <input type="number" class="form-control" id="creditosAsignatura" required>
             </div>
           </form>
         </div>
@@ -76,13 +95,17 @@
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="modalEditarAsignaturaLabel">Editar Asignatura</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <form>
             <div class="mb-3">
+              <label for="editCodigoAsignatura" class="form-label">Código</label>
+              <input type="text" class="form-control" id="editCodigoAsignatura" required>
+            </div>
+            <div class="mb-3">
               <label for="editNombreAsignatura" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="editNombreAsignatura">
+              <input type="text" class="form-control" id="editNombreAsignatura" required>
             </div>
             <div class="mb-3">
               <label for="editDescripcionAsignatura" class="form-label">Descripción</label>
@@ -90,7 +113,7 @@
             </div>
             <div class="mb-3">
               <label for="editCreditosAsignatura" class="form-label">Créditos</label>
-              <input type="number" class="form-control" id="editCreditosAsignatura">
+              <input type="number" class="form-control" id="editCreditosAsignatura" required>
             </div>
           </form>
         </div>
