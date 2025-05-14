@@ -13,10 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --- Aquí está el truco ---
-// 1) Sirve tus vistas HTML (index.html, dashboard.html, etc.)
 app.use(express.static(path.join(__dirname, 'public', 'views')));
-// 2) Sirve el resto de la carpeta public (js, css, imágenes…)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Conexión a MongoDB
