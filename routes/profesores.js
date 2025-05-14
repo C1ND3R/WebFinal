@@ -1,9 +1,11 @@
 // routes/profesores.js
 const express = require('express');
 const router = express.Router();
-const Profesor = require('../models/profesor');
+
+const Profesor              = require('../models/profesor');
 const TrayectoriaAsignatura = require('../models/trayectoriaAsignatura');
-const Asignatura = require('../models/asignatura');
+const Asignatura            = require('../models/asignaturas');
+
 const { authenticateToken, checkRole } = require('../middleware/auth');
 
 /**
@@ -29,7 +31,6 @@ router.post(
 /**
  * GET /api/profesores
  * Listar todos los profesores activos (Administrador, Coordinador)
- * → Se usará también para el reporte en el front end
  */
 router.get(
   '/',
@@ -85,7 +86,7 @@ router.put(
         { telefono, departamento, oficina, activo, updatedAt: Date.now() },
         { new: true }
       )
-        .populate('usuario', 'nombre_completo email');
+      .populate('usuario', 'nombre_completo email');
       if (!actualizado) {
         return res.status(404).json({ message: 'Profesor no encontrado' });
       }
@@ -122,3 +123,4 @@ router.delete(
 );
 
 module.exports = router;
+

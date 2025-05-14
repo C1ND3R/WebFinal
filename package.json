@@ -10,15 +10,23 @@
     "node": ">=16"
   },
   "keywords": [],
-  "author": "",
+  "author": "cinder",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/C1ND3R/WebFinal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/C1ND3R/WebFinal/issues"
+  },
+  "homepage": "https://github.com/C1ND3R/WebFinal#readme"
 }
-
