@@ -48,55 +48,45 @@
 
     <!-- Filtros y botón Nuevo -->
     <div class="row mb-3">
-      <div class="col-md-4">
-        <input
-          id="searchInput"
-          type="text"
-          class="form-control"
-          placeholder="Buscar por nombre…"
-        />
-      </div>
-      <div class="col-md-3">
-        <select id="filterDept" class="form-select">
-          <option value="">— Todos los Departamentos —</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <select id="sortField" class="form-select">
-          <option value="usuario.nombre_completo">Ordenar por Nombre</option>
-          <option value="departamento">Ordenar por Departamento</option>
-        </select>
-      </div>
-      <div class="col-md-2">
-        <button
-          id="btnNewProfesor"
-          class="btn btn-primary w-100"
-          data-bs-toggle="modal"
-          data-bs-target="#modalCrearProfesor"
-        >
-          Nuevo Profesor
-        </button>
-      </div>
+        <div class="col-md-4">
+            <input id="searchInput" type="text" class="form-control" placeholder="Buscar por nombre…" />
+        </div>
+        <div class="col-md-3">
+            <select id="filterDept" class="form-select">
+                <option value="">— Todos los Departamentos —</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select id="sortField" class="form-select">
+                <option value="usuario.nombre_completo">Ordenar por Nombre</option>
+                <option value="departamento">Ordenar por Departamento</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button id="btnNewProfesor" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modalCrearProfesor">
+                Nuevo Profesor
+            </button>
+        </div>
     </div>
 
-    <!-- Tabla -->
+    <!-- Tabla de Profesores -->
     <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Email</th>
-          <th>Teléfono</th>
-          <th>Departamento</th>
-          <th>Oficina</th>
-          <th>Activo</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="profesoresTbody">
-        <!-- Se inyecta vía JS -->
-      </tbody>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Departamento</th>
+                <th>Oficina</th>
+                <th>Activo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="profesoresTbody">
+            <!-- Se inyecta vía JS -->
+        </tbody>
     </table>
-  </div>
+</div>
 
   <!-- Modal Crear Profesor -->
   <div class="modal fade" id="modalCrearProfesor" tabindex="-1" aria-hidden="true">

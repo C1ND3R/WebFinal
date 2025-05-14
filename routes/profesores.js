@@ -38,11 +38,9 @@ router.get(
   checkRole(['Administrador', 'Coordinador']),
   async (req, res) => {
     try {
-      // Obtener sólo profesores activos y poblar datos de usuario
       const lista = await Profesor.find({ activo: true })
         .populate('usuario', 'nombre_completo email')
         .sort({ 'usuario.nombre_completo': 1 });
-      // Filtramos cualquier registro cuyo usuario referenciado no exista
       const listaFiltrada = lista.filter(p => p.usuario != null);
       res.status(200).json(listaFiltrada);
     } catch (error) {
@@ -69,6 +67,65 @@ router.get(
       res.status(200).json(prof);
     } catch (error) {
       res.status(500).json({ message: 'Error al obtener el profesor', error: error.message });
+    }
+  }
+);
+
+/**
+ * GET /api/profesores/:id/asignaturas
+ * Devuelve la lista de trayectorias (asignaturas) para el profesor :id
+ */
+router.get(
+  '/:id/asignaturas',
+  authenticateToken,
+  checkRole(['Coordinador', 'Administrador']),
+  async (req, res) => {
+    try {
+      const trayectorias = await TrayectoriaAsignatura.find({ profesor: req.params.id })
+        .populate('asignatura', 'nombre periodo anio grupo')
+        .sort({ anio: -1, periodo: 1, grupo: 1 });
+      return res.json(trayectorias);
+    } catch (err) {
+      console.error('Error en GET /api/profesores/:id/asignaturas:', err);
+      return res
+        .status(500)
+        .json({ message: 'Error al cargar asignaturas del profesor', error: err.message });
+    }
+  }
+);
+
+/**
+ * POST /api/profesores/:id/asignaturas
+ * Asignar una asignatura a un profesor (Administrador)
+ */
+router.post(
+  '/:id/asignaturas',
+  authenticateToken,
+  checkRole(['Administrador']),
+  async (req, res) => {
+    try {
+      const profesorId = req.params.id;
+      const { asignatura, periodo, anio, grupo } = req.body;
+      if (!asignatura || !periodo || !anio || !grupo) {
+        return res.status(400).json({ message: 'Datos incompletos para asignar asignatura' });
+      }
+      const nuevaAsignacion = new TrayectoriaAsignatura({
+        profesor: profesorId,
+        asignatura,
+        periodo,
+        anio,
+        grupo
+      });
+      const guardada = await nuevaAsignacion.save();
+      res.status(201).json(guardada);
+    } catch (err) {
+      if (err.code === 11000) {
+        return res
+          .status(409)
+          .json({ message: 'La asignatura ya está asignada a este profesor' });
+      }
+      console.error('Error asignando asignatura:', err);
+      res.status(500).json({ message: 'Error al asignar asignatura', error: err.message });
     }
   }
 );
