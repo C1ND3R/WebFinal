@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Cargar la lista de usuarios
   loadUsuarios();
-  
   // Configurar listeners para los botones
   setupEventListeners();
 });
@@ -26,31 +25,29 @@ function loadUsuarios() {
     .then(data => updateUsuariosTable(data))
     .catch(error => {
       console.error('Error:', error);
-      // Datos de ejemplo para desarrollo
+      // Mock para desarrollo
       const mockData = [
-        { id: 1, username: 'admin', rol: 'Administrador', email: 'admin@example.com' },
-        { id: 2, username: 'coord1', rol: 'Coordinador', email: 'coord1@example.com' },
-        { id: 3, username: 'prof1', rol: 'Profesor', email: 'prof1@example.com' }
+        { id: 1, username: 'admin', nombre_completo: 'Administrador', rol: 'Administrador', email: 'admin@example.com' }
       ];
       updateUsuariosTable(mockData);
     });
 }
 
-// Actualizar la tabla de usuarios con los datos recibidos
+// Actualizar la tabla de usuarios
 function updateUsuariosTable(usuarios) {
   const tbody = document.querySelector('table tbody');
   tbody.innerHTML = '';
-
   usuarios.forEach(usuario => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${usuario.id}</td>
+      <td>${usuario._id || usuario.id}</td>
       <td>${usuario.username}</td>
+      <td>${usuario.nombre_completo}</td>
       <td>${usuario.rol}</td>
       <td>${usuario.email}</td>
       <td>
-        <button class="btn btn-warning btn-sm" onclick="prepararEditarUsuario('${usuario.id}')">Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="confirmarEliminarUsuario('${usuario.id}', '${usuario.username}')">Eliminar</button>
+        <button class="btn btn-warning btn-sm" onclick="prepararEditarUsuario('${usuario._id || usuario.id}')">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmarEliminarUsuario('${usuario._id || usuario.id}', '${usuario.username}')">Eliminar</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -60,14 +57,12 @@ function updateUsuariosTable(usuarios) {
 // Preparar modal para editar usuario
 function prepararEditarUsuario(usuarioId) {
   fetchWithAuth(`/api/usuarios/${usuarioId}`)
-    .then(response => {
-      if (!response.ok) throw new Error('Error al cargar datos del usuario');
-      return response.json();
-    })
+    .then(response => response.ok ? response.json() : Promise.reject())
     .then(usuario => {
-      document.getElementById('editUsername').value    = usuario.username;
-      document.getElementById('editTipoUsuario').value = usuario.rol.toLowerCase();
-      document.getElementById('editEmail').value       = usuario.email;
+      document.getElementById('editUsername').value        = usuario.username;
+      document.getElementById('editNombreCompleto').value  = usuario.nombre_completo;
+      document.getElementById('editTipoUsuario').value     = usuario.rol.toLowerCase();
+      document.getElementById('editEmail').value           = usuario.email;
 
       const form = document.querySelector('#modalEditarUsuario form');
       form.dataset.usuarioId = usuarioId;
@@ -76,13 +71,7 @@ function prepararEditarUsuario(usuarioId) {
     })
     .catch(error => {
       console.error('Error:', error);
-      // Simulación para desarrollo
-      document.getElementById('editUsername').value    = 'usuario' + usuarioId;
-      document.getElementById('editTipoUsuario').value = 'coordinador';
-      document.getElementById('editEmail').value       = `usuario${usuarioId}@example.com`;
-      const form = document.querySelector('#modalEditarUsuario form');
-      form.dataset.usuarioId = usuarioId;
-      new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show();
+      alert('No se pudo cargar el usuario para editar');
     });
 }
 
@@ -91,117 +80,107 @@ function guardarUsuarioEditado() {
   const form = document.querySelector('#modalEditarUsuario form');
   const usuarioId = form.dataset.usuarioId;
 
-  const userData = {
-    username: document.getElementById('editUsername').value,
-    rol:      document.getElementById('editTipoUsuario').value,
-    email:    document.getElementById('editEmail').value
-  };
-  // Si cambió la contraseña, inclúyela
-  const newPass = document.getElementById('editPassword').value;
-  if (newPass) userData.password = newPass;
+  const username       = document.getElementById('editUsername').value.trim();
+  const nombreCompleto = document.getElementById('editNombreCompleto').value.trim();
+  const tipoKey        = document.getElementById('editTipoUsuario').value;
+  const email          = document.getElementById('editEmail').value.trim();
+  const password       = document.getElementById('editPassword').value;
 
-  // Validación básica
-  if (!userData.username || !userData.email) {
+  if (!username || !nombreCompleto || !email) {
     alert('Por favor completa los campos obligatorios');
     return;
   }
 
+  const rolesMap = {
+    administrador: 'Administrador',
+    coordinador:   'Coordinador',
+    profesor:      'Profesor',
+    alumno:        'Alumno'
+  };
+  const rol = rolesMap[tipoKey];
+
+  const userData = { username, nombre_completo: nombreCompleto, email, rol };
+  if (password) userData.password = password;
+
   fetchWithAuth(`/api/usuarios/${usuarioId}`, {
     method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userData)
   })
-  .then(resp => {
-    if (!resp.ok) throw new Error('Error al actualizar usuario');
-    return resp.json();
-  })
-  .then(() => {
-    bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario')).hide();
-    loadUsuarios();
-    alert('Usuario actualizado correctamente');
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('Error al actualizar el usuario. Por favor intente nuevamente.');
-    bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario')).hide();
-    loadUsuarios();
-  });
-}
-
-// Confirmar eliminación de usuario
-function confirmarEliminarUsuario(usuarioId, username) {
-  if (confirm(`¿Está seguro que desea eliminar al usuario ${username}?`)) {
-    eliminarUsuario(usuarioId);
-  }
-}
-
-// Eliminar usuario
-function eliminarUsuario(usuarioId) {
-  fetchWithAuth(`/api/usuarios/${usuarioId}`, { method: 'DELETE' })
-    .then(resp => {
-      if (!resp.ok) throw new Error('Error al eliminar usuario');
-      return resp.json();
-    })
+    .then(resp => resp.ok ? resp.json() : Promise.reject())
     .then(() => {
+      alert('Usuario actualizado correctamente');
+      bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario')).hide();
       loadUsuarios();
-      alert('Usuario eliminado correctamente');
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('Error al eliminar el usuario. Por favor intente nuevamente.');
+      alert('Error al actualizar el usuario');
       loadUsuarios();
+    });
+}
+
+// Confirmar y eliminar usuario
+function confirmarEliminarUsuario(usuarioId, username) {
+  if (!confirm(`¿Eliminar al usuario ${username}?`)) return;
+  fetchWithAuth(`/api/usuarios/${usuarioId}`, { method: 'DELETE' })
+    .then(resp => resp.ok ? resp.json() : Promise.reject())
+    .then(() => {
+      alert('Usuario eliminado correctamente');
+      loadUsuarios();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error al eliminar el usuario');
     });
 }
 
 // Crear nuevo usuario
 function crearUsuario() {
-  const userData = {
-    username: document.getElementById('username').value,
-    rol:      document.getElementById('tipoUsuario').value,
-    email:    document.getElementById('email').value,
-    password: document.getElementById('password').value
-  };
+  const username       = document.getElementById('username').value.trim();
+  const nombreCompleto = document.getElementById('nombreCompleto').value.trim();
+  const tipoKey        = document.getElementById('tipoUsuario').value;
+  const email          = document.getElementById('email').value.trim();
+  const password       = document.getElementById('password').value;
 
-  // Validación básica
-  if (!userData.username || !userData.email || !userData.password) {
-    alert('Por favor completa los campos obligatorios');
+  if (!username || !nombreCompleto || !email || !password) {
+    alert('Por favor completa todos los campos');
     return;
   }
 
+  const rolesMap = {
+    administrador: 'Administrador',
+    coordinador:   'Coordinador',
+    profesor:      'Profesor',
+    alumno:        'Alumno'
+  };
+  const rol = rolesMap[tipoKey];
+
+  const userData = { username, nombre_completo: nombreCompleto, email, password, rol };
+
   fetchWithAuth('/api/usuarios', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userData)
   })
-  .then(resp => {
-    if (!resp.ok) throw new Error('Error al crear usuario');
-    return resp.json();
-  })
-  .then(() => {
-    bootstrap.Modal.getInstance(document.getElementById('modalCrearUsuario')).hide();
-    document.getElementById('username').value = '';
-    document.getElementById('email').value    = '';
-    document.getElementById('password').value = '';
-    loadUsuarios();
-    alert('Usuario creado correctamente');
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    alert('Error al crear el usuario. Por favor intente nuevamente.');
-    bootstrap.Modal.getInstance(document.getElementById('modalCrearUsuario')).hide();
-    document.getElementById('username').value = '';
-    document.getElementById('email').value    = '';
-    document.getElementById('password').value = '';
-    loadUsuarios();
-  });
+    .then(resp => resp.ok ? resp.json() : Promise.reject())
+    .then(() => {
+      alert('Usuario creado correctamente');
+      const modal = bootstrap.Modal.getInstance(document.getElementById('modalCrearUsuario'));
+      modal.hide();
+      ['username','nombreCompleto','email','password'].forEach(id => document.getElementById(id).value = '');
+      loadUsuarios();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error al crear el usuario. Por favor revisa la consola.');
+    });
 }
 
-// Configurar listeners para los botones
+// Configurar listeners y exponer funciones
 function setupEventListeners() {
-  document.querySelector('#modalCrearUsuario .btn-primary')
-          .addEventListener('click', crearUsuario);
-  document.querySelector('#modalEditarUsuario .btn-primary')
-          .addEventListener('click', guardarUsuarioEditado);
-
-  // Exponer funciones globalmente
-  window.prepararEditarUsuario   = prepararEditarUsuario;
+  document.querySelector('#modalCrearUsuario .btn-primary').addEventListener('click', crearUsuario);
+  document.querySelector('#modalEditarUsuario .btn-primary').addEventListener('click', guardarUsuarioEditado);
+  window.prepararEditarUsuario    = prepararEditarUsuario;
   window.confirmarEliminarUsuario = confirmarEliminarUsuario;
 }
