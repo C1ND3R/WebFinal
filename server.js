@@ -14,38 +14,40 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir ficheros estáticos
+// Servir ficheros estáticos:
+//  - public/views → para los HTML bajo /<nombre>.html
+//  - public       → para /js, /css, /images, etc.
 app.use(express.static(path.join(__dirname, 'public', 'views')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Conexión a MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
+  useNewUrlParser:    true,
   useUnifiedTopology: true
 })
 .then(() => console.log('Conexión a MongoDB establecida'))
 .catch(err => console.error('Error de conexión a MongoDB:', err));
 
-// Middlewares de auth
+// Middleware de autenticación
 const { authenticateToken } = require('./middleware/auth');
 
 // Rutas API
-app.use('/api/auth',        require('./routes/auth'));
-app.use('/api/usuarios',    authenticateToken, require('./routes/usuarios'));
-app.use('/api/asignaturas', authenticateToken, require('./routes/asignaturas'));
-app.use('/api/profesores',  authenticateToken, require('./routes/profesores'));
-app.use('/api/evaluaciones',authenticateToken, require('./routes/evaluaciones'));
+app.use('/api/auth',         require('./routes/auth'));
+app.use('/api/usuarios',     authenticateToken, require('./routes/usuarios'));
+app.use('/api/asignaturas',  authenticateToken, require('./routes/asignaturas'));
+app.use('/api/profesores',   authenticateToken, require('./routes/profesores'));
+app.use('/api/evaluaciones', authenticateToken, require('./routes/evaluaciones'));
 
-// NUEVA RUTA para reportes
+// Rutas de Reportes
 const reportesRouter = require('./routes/reportes');
 app.use('/api/reportes', authenticateToken, reportesRouter);
 
-// Captura 404 para /api/*
+// Captura cualquier /api/* no manejado
 app.use('/api/*', (req, res) => {
   res.status(404).json({ message: 'Endpoint no encontrado' });
 });
 
-// Error handler
+// Manejador de errores genérico
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -54,9 +56,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Arrancar servidor
+// Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en el puerto ${PORT}`);
 });
+
 
 
