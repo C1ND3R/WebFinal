@@ -1,31 +1,27 @@
 // public/js/admin-profesores.js
-// Sólo Administrador puede acceder
+
 document.addEventListener('DOMContentLoaded', () => {
   if (getUserRole() !== 'Administrador') {
-    alert('No tienes permiso para entrar aquí');
-    window.location.href = 'dashboard.html';
-    return;
+    alert('No tienes permisos para esta sección');
+    return window.location.href = 'dashboard.html';
   }
-
   cargarUsuariosProfesor();
   loadAndRenderProfesores();
-  conectarFiltros();
-  conectarEventos();
+  setupFiltros();
+  setupEventos();
 });
 
-// Datos en memoria
-let todosProfesores = [];
-let todosUsuarios    = [];
+let allProfesores = [];
+let allUsuarios   = [];
 
-/** Carga usuarios de rol 'Profesor' para dropdown */
 function cargarUsuariosProfesor() {
   fetchWithAuth('/api/usuarios')
-    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(r => r.ok ? r.json() : Promise.reject(r))
     .then(list => {
-      todosUsuarios = list.filter(u => u.rol === 'Profesor');
+      allUsuarios = list.filter(u => u.rol === 'Profesor');
       const sel = document.getElementById('usuarioSelect');
       sel.innerHTML = '';
-      todosUsuarios.forEach(u => {
+      allUsuarios.forEach(u => {
         const o = document.createElement('option');
         o.value       = u._id;
         o.textContent = u.nombre_completo;
@@ -34,29 +30,40 @@ function cargarUsuariosProfesor() {
     })
     .catch(err => {
       console.error(err);
-      alert('Error cargando usuarios');
+      alert('Error al cargar lista de usuarios');
     });
 }
 
-/** Trae profesores y gatilla render y filtros */
 function loadAndRenderProfesores() {
   fetchWithAuth('/api/profesores')
-    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(r => r.ok ? r.json() : Promise.reject(r))
     .then(data => {
-      todosProfesores = data;
+      allProfesores = data;
       poblarDeptos();
       filtrarYRenderizar();
     })
     .catch(err => {
       console.error(err);
-      todosProfesores = [];
+      allProfesores = [];
       poblarDeptos();
       filtrarYRenderizar();
     });
 }
 
-/** Conecta inputs para filtro en tiempo real */
-function conectarFiltros() {
+function poblarDeptos() {
+  const sel = document.getElementById('filterDept');
+  sel.innerHTML = `<option value="">— Todos —</option>`;
+  [...new Set(allProfesores.map(p => p.departamento))]
+    .sort()
+    .forEach(d => {
+      const o = document.createElement('option');
+      o.value       = d;
+      o.textContent = d;
+      sel.appendChild(o);
+    });
+}
+
+function setupFiltros() {
   document.getElementById('searchInput')
           .addEventListener('input', filtrarYRenderizar);
   document.getElementById('filterDept')
@@ -65,44 +72,23 @@ function conectarFiltros() {
           .addEventListener('change', filtrarYRenderizar);
 }
 
-/** Populate departamentos dropdown */
-function poblarDeptos() {
-  const sel = document.getElementById('filterDept');
-  sel.innerHTML = `<option value="">— Todos los Departamentos —</option>`;
-  const setDept = new Set(todosProfesores.map(p => p.departamento));
-  Array.from(setDept).sort().forEach(d => {
-    const o = document.createElement('option');
-    o.value       = d;
-    o.textContent = d;
-    sel.appendChild(o);
-  });
-}
-
-/** Filtra, ordena y renderiza la tabla */
 function filtrarYRenderizar() {
   const txt   = document.getElementById('searchInput').value.trim().toLowerCase();
   const dept  = document.getElementById('filterDept').value;
   const sortF = document.getElementById('sortField').value;
-
-  let list = todosProfesores
-    .filter(p => p.usuario.nombre_completo.toLowerCase().includes(txt));
-
-  if (dept) {
-    list = list.filter(p => p.departamento === dept);
-  }
-
-  list.sort((a, b) => {
+  let list = allProfesores.filter(p =>
+    p.usuario.nombre_completo.toLowerCase().includes(txt)
+  );
+  if (dept) list = list.filter(p => p.departamento === dept);
+  list.sort((a,b) => {
     if (sortF === 'departamento') {
       return a.departamento.localeCompare(b.departamento);
     }
-    // default: nombre
     return a.usuario.nombre_completo.localeCompare(b.usuario.nombre_completo);
   });
-
   renderTabla(list);
 }
 
-/** Renderiza la tabla dada una lista */
 function renderTabla(list) {
   const tbody = document.getElementById('profesoresTbody');
   tbody.innerHTML = '';
@@ -118,30 +104,31 @@ function renderTabla(list) {
       <td>
         <button class="btn btn-warning btn-sm" onclick="abrirEditar('${p._id}')">Editar</button>
         <button class="btn btn-danger btn-sm"  onclick="borrarProfesor('${p._id}')">Eliminar</button>
-      </td>
-    `;
+      </td>`;
     tbody.appendChild(tr);
   });
 }
 
-/** Eventos de creación/edición */
-function conectarEventos() {
-  document.getElementById('btnSaveNew').addEventListener('click', () => {
-    const usuario     = document.getElementById('usuarioSelect').value;
-    const telefono    = document.getElementById('telefonoInput').value.trim();
-    const departamento= document.getElementById('departamentoInput').value.trim();
-    const oficina     = document.getElementById('oficinaInput').value.trim();
+function setupEventos() {
+  document.getElementById('btnSaveNew')
+          .addEventListener('click', crearProfesor);
+  document.getElementById('btnSaveEdit')
+          .addEventListener('click', guardarProfesorEditado);
+}
 
-    if (!usuario || !telefono || !departamento) {
-      return alert('Completa todos los campos obligatorios');
-    }
-
-    fetchWithAuth('/api/profesores', {
-      method: 'POST',
-      headers:{ 'Content-Type': 'application/json' },
-      body: JSON.stringify({ usuario, telefono, departamento, oficina })
-    })
-    .then(r => r.ok ? r.json() : Promise.reject())
+function crearProfesor() {
+  const usuario     = document.getElementById('usuarioSelect').value;
+  const telefono    = document.getElementById('telefonoInput').value.trim();
+  const departamento= document.getElementById('departamentoInput').value.trim();
+  const oficina     = document.getElementById('oficinaInput').value.trim();
+  if (!usuario || !telefono || !departamento) {
+    return alert('Completa todos los campos obligatorios');
+  }
+  fetchWithAuth('/api/profesores', {
+    method: 'POST',
+    body: JSON.stringify({ usuario, telefono, departamento, oficina })
+  })
+    .then(r => r.ok ? r.json() : Promise.reject(r))
     .then(() => {
       bootstrap.Modal.getInstance(document.getElementById('modalCrearProfesor')).hide();
       loadAndRenderProfesores();
@@ -150,40 +137,11 @@ function conectarEventos() {
       console.error(err);
       alert('No se pudo crear el profesor');
     });
-  });
-
-  document.getElementById('btnSaveEdit').addEventListener('click', () => {
-    const id           = document.getElementById('editProfesorId').value;
-    const telefono     = document.getElementById('editTelefono').value.trim();
-    const departamento = document.getElementById('editDepartamento').value.trim();
-    const oficina      = document.getElementById('editOficina').value.trim();
-    const activo       = document.getElementById('editActivo').checked;
-
-    if (!telefono || !departamento) {
-      return alert('Completa teléfono y departamento');
-    }
-
-    fetchWithAuth(`/api/profesores/${id}`, {
-      method: 'PUT',
-      headers:{ 'Content-Type': 'application/json' },
-      body: JSON.stringify({ telefono, departamento, oficina, activo })
-    })
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(() => {
-      bootstrap.Modal.getInstance(document.getElementById('modalEditarProfesor')).hide();
-      loadAndRenderProfesores();
-    })
-    .catch(err => {
-      console.error(err);
-      alert('No se pudo actualizar el profesor');
-    });
-  });
 }
 
-// Funciones globales para botones de fila
-window.abrirEditar = function(id) {
+function abrirEditar(id) {
   fetchWithAuth(`/api/profesores/${id}`)
-    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(r => r.ok ? r.json() : Promise.reject(r))
     .then(p => {
       document.getElementById('editProfesorId').value   = p._id;
       document.getElementById('editNombre').value      = p.usuario.nombre_completo;
@@ -197,19 +155,41 @@ window.abrirEditar = function(id) {
       console.error(err);
       alert('No se pudo cargar el profesor');
     });
-};
+}
 
-window.borrarProfesor = function(id) {
-  if (!confirm('¿Eliminar este profesor?')) return;
+function guardarProfesorEditado() {
+  const id           = document.getElementById('editProfesorId').value;
+  const telefono     = document.getElementById('editTelefono').value.trim();
+  const departamento = document.getElementById('editDepartamento').value.trim();
+  const oficina      = document.getElementById('editOficina').value.trim();
+  const activo       = document.getElementById('editActivo').checked;
+  if (!telefono || !departamento) {
+    return alert('Completa teléfono y departamento');
+  }
   fetchWithAuth(`/api/profesores/${id}`, {
-    method: 'DELETE',
-    headers:{ 'Content-Type': 'application/json' }
+    method: 'PUT',
+    body: JSON.stringify({ telefono, departamento, oficina, activo })
   })
-  .then(r => r.ok ? r.json() : Promise.reject())
-  .then(() => loadAndRenderProfesores())
-  .catch(err => {
-    console.error(err);
-    alert('No se pudo eliminar el profesor');
-  });
-};
+    .then(r => r.ok ? r.json() : Promise.reject(r))
+    .then(() => {
+      bootstrap.Modal.getInstance(document.getElementById('modalEditarProfesor')).hide();
+      loadAndRenderProfesores();
+    })
+    .catch(err => {
+      console.error(err);
+      alert('No se pudo actualizar el profesor');
+    });
+}
+
+function borrarProfesor(id) {
+  if (!confirm('¿Eliminar este profesor?')) return;
+  fetchWithAuth(`/api/profesores/${id}`, { method: 'DELETE' })
+    .then(r => r.ok ? r.json() : Promise.reject(r))
+    .then(() => loadAndRenderProfesores())
+    .catch(err => {
+      console.error(err);
+      alert('No se pudo eliminar el profesor');
+    });
+}
+
 

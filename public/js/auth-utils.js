@@ -1,4 +1,4 @@
-// auth-utils.js - Funciones de utilidad para la autenticación y autorización
+// public/js/auth-utils.js
 
 // Verificar si el usuario está autenticado
 function isAuthenticated() {
@@ -20,7 +20,7 @@ function getUserId() {
   return localStorage.getItem('userId');
 }
 
-// Cerrar sesión
+// Cerrar sesión: limpia almacenamiento y redirige al login
 function logout() {
   localStorage.removeItem('authToken');
   localStorage.removeItem('userRole');
@@ -28,37 +28,16 @@ function logout() {
   window.location.href = 'index.html';
 }
 
-// Verificar si el usuario tiene el rol requerido
-function checkRole(requiredRole) {
-  const role = getUserRole();
-
-  // Si no hay rol o no coincide con el requerido, redirigir al login
-  if (!role || role !== requiredRole) {
-    if (role === 'Administrador') {
-      // Los administradores pueden acceder a todo
-      return true;
-    }
-    alert('No tienes permisos para acceder a esta página');
-    window.location.href = 'index.html';
-    return false;
-  }
-
-  return true;
-}
-
-// Agregar headers de autenticación a las solicitudes fetch
+// fetchWithAuth: añade Authorization: Bearer <token> y Content-Type
 function fetchWithAuth(url, options = {}) {
   const token = getAuthToken();
-
   if (!token) {
+    // Sin token, volvemos al login
     window.location.href = 'index.html';
     return Promise.reject('No autenticado');
   }
-
-  // Configurar headers con token
   const headers = options.headers || {};
   headers['Authorization'] = `Bearer ${token}`;
-
   return fetch(url, {
     ...options,
     headers: {
@@ -68,21 +47,12 @@ function fetchWithAuth(url, options = {}) {
   });
 }
 
-// Verificar autenticación al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
-  // Si estamos en la página de login, no verificar
-  if (window.location.pathname.includes('index.html')) {
-    return;
-  }
-
-  // Verificar si hay token
-  if (!isAuthenticated()) {
+// Al cargar cualquier página (salvo index.html), forzar que esté autenticado
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.location.pathname.includes('index.html') && !isAuthenticated()) {
     window.location.href = 'index.html';
   }
-
-  // Agregar listener para el botón de cerrar sesión si existe
-  const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', logout);
-  }
+  // Asociar el botón de logout si existe
+  const btn = document.getElementById('logout-btn');
+  if (btn) btn.addEventListener('click', logout);
 });

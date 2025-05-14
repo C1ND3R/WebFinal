@@ -8,7 +8,7 @@ const router = express.Router();
 
 /**
  * GET /api/usuarios
- * Listar todos los usuarios activos (solo Administrador)
+ * Listar todos los usuarios activos
  */
 router.get(
   '/',
@@ -26,7 +26,7 @@ router.get(
 
 /**
  * GET /api/usuarios/:id
- * Obtener un usuario por ID (solo Administrador)
+ * Obtener un usuario por ID
  */
 router.get(
   '/:id',
@@ -45,7 +45,7 @@ router.get(
 
 /**
  * POST /api/usuarios
- * Crear usuario (solo Administrador)
+ * Crear usuario
  */
 router.post(
   '/',
@@ -54,26 +54,24 @@ router.post(
   async (req, res) => {
     try {
       const { username, password, email, nombre_completo, rol } = req.body;
-      // Validación mínima
       if (!username || !password || !email || !rol) {
         return res.status(400).json({ message: 'Faltan campos obligatorios' });
       }
-      // Revisar duplicados
-      const exists = await Usuario.findOne({ $or: [{username},{email}] });
+      const exists = await Usuario.findOne({ $or: [{ username }, { email }] });
       if (exists) {
         return res.status(400).json({ message: 'Usuario o email ya existe' });
       }
-      // Encriptar contraseña
       const salt = await bcrypt.genSalt(10);
       const hash = await bcrypt.hash(password, salt);
-      // Crear
       const nuevo = new Usuario({
-        username, email, nombre_completo, rol,
+        username,
+        email,
+        nombre_completo,
+        rol,
         password: hash,
         activo: true
       });
       const saved = await nuevo.save();
-      // Responder sin contraseña
       const { _id, username: u, email: e, nombre_completo: n, rol: r, activo, createdAt } = saved;
       res.status(201).json({ id: _id, username: u, email: e, nombre_completo: n, rol: r, activo, createdAt });
     } catch (err) {
@@ -84,7 +82,7 @@ router.post(
 
 /**
  * PUT /api/usuarios/:id
- * Actualizar usuario (solo Administrador)
+ * Actualizar usuario
  */
 router.put(
   '/:id',
@@ -94,7 +92,6 @@ router.put(
     try {
       const { username, email, nombre_completo, rol, password } = req.body;
       const updates = { username, email, nombre_completo, rol, updatedAt: Date.now() };
-      // Si llega password nuevo, lo encriptamos
       if (password) {
         const salt = await bcrypt.genSalt(10);
         updates.password = await bcrypt.hash(password, salt);
@@ -110,7 +107,7 @@ router.put(
 
 /**
  * DELETE /api/usuarios/:id
- * Desactivar usuario (soft delete) (solo Administrador)
+ * Desactivar usuario (soft delete)
  */
 router.delete(
   '/:id',
@@ -132,3 +129,4 @@ router.delete(
 );
 
 module.exports = router;
+

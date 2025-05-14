@@ -14,9 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir ficheros estáticos:
-//  - public/views → para los HTML bajo /<nombre>.html
-//  - public       → para /js, /css, /images, etc.
+// Servir vistas y assets
 app.use(express.static(path.join(__dirname, 'public', 'views')));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -37,17 +35,14 @@ app.use('/api/usuarios',     authenticateToken, require('./routes/usuarios'));
 app.use('/api/asignaturas',  authenticateToken, require('./routes/asignaturas'));
 app.use('/api/profesores',   authenticateToken, require('./routes/profesores'));
 app.use('/api/evaluaciones', authenticateToken, require('./routes/evaluaciones'));
+app.use('/api/reportes',     authenticateToken, require('./routes/reportes'));
 
-// Rutas de Reportes
-const reportesRouter = require('./routes/reportes');
-app.use('/api/reportes', authenticateToken, reportesRouter);
-
-// Captura cualquier /api/* no manejado
+// 404 para /api/*
 app.use('/api/*', (req, res) => {
   res.status(404).json({ message: 'Endpoint no encontrado' });
 });
 
-// Manejador de errores genérico
+// Manejador genérico de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({

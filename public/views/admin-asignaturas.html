@@ -36,7 +36,7 @@
       Crear Asignatura
     </button>
 
-    <table class="table table-bordered">
+    <table id="tablaAsignaturas" class="table table-bordered">
       <thead>
         <tr>
           <th>ID</th>
@@ -64,26 +64,26 @@
         <div class="modal-body">
           <form>
             <div class="mb-3">
-              <label for="codigoAsignatura" class="form-label">Código</label>
-              <input type="text" class="form-control" id="codigoAsignatura" required>
+              <label for="codigo" class="form-label">Código</label>
+              <input type="text" class="form-control" id="codigo" required>
             </div>
             <div class="mb-3">
-              <label for="nombreAsignatura" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="nombreAsignatura" required>
+              <label for="nombre" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="nombre" required>
             </div>
             <div class="mb-3">
-              <label for="descripcionAsignatura" class="form-label">Descripción</label>
-              <textarea class="form-control" id="descripcionAsignatura" rows="3"></textarea>
+              <label for="descripcion" class="form-label">Descripción</label>
+              <textarea class="form-control" id="descripcion" rows="3"></textarea>
             </div>
             <div class="mb-3">
-              <label for="creditosAsignatura" class="form-label">Créditos</label>
-              <input type="number" class="form-control" id="creditosAsignatura" required>
+              <label for="creditos" class="form-label">Créditos</label>
+              <input type="number" class="form-control" id="creditos" required>
             </div>
           </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-          <button type="button" class="btn btn-primary">Guardar Asignatura</button>
+          <button type="button" id="btnCrearAsig" class="btn btn-primary">Guardar Asignatura</button>
         </div>
       </div>
     </div>
@@ -100,26 +100,26 @@
         <div class="modal-body">
           <form>
             <div class="mb-3">
-              <label for="editCodigoAsignatura" class="form-label">Código</label>
-              <input type="text" class="form-control" id="editCodigoAsignatura" required>
+              <label for="editCodigo" class="form-label">Código</label>
+              <input type="text" class="form-control" id="editCodigo" required>
             </div>
             <div class="mb-3">
-              <label for="editNombreAsignatura" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="editNombreAsignatura" required>
+              <label for="editNombre" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="editNombre" required>
             </div>
             <div class="mb-3">
-              <label for="editDescripcionAsignatura" class="form-label">Descripción</label>
-              <textarea class="form-control" id="editDescripcionAsignatura" rows="3"></textarea>
+              <label for="editDescripcion" class="form-label">Descripción</label>
+              <textarea class="form-control" id="editDescripcion" rows="3"></textarea>
             </div>
             <div class="mb-3">
-              <label for="editCreditosAsignatura" class="form-label">Créditos</label>
-              <input type="number" class="form-control" id="editCreditosAsignatura" required>
+              <label for="editCreditos" class="form-label">Créditos</label>
+              <input type="number" class="form-control" id="editCreditos" required>
             </div>
           </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-          <button type="button" class="btn btn-primary">Guardar Cambios</button>
+          <button type="button" id="btnEditarAsig" class="btn btn-primary">Guardar Cambios</button>
         </div>
       </div>
     </div>
