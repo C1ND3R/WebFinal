@@ -38,10 +38,13 @@ router.get(
   checkRole(['Administrador', 'Coordinador']),
   async (req, res) => {
     try {
+      // Obtener sólo profesores activos y poblar datos de usuario
       const lista = await Profesor.find({ activo: true })
         .populate('usuario', 'nombre_completo email')
         .sort({ 'usuario.nombre_completo': 1 });
-      res.status(200).json(lista);
+      // Filtramos cualquier registro cuyo usuario referenciado no exista
+      const listaFiltrada = lista.filter(p => p.usuario != null);
+      res.status(200).json(listaFiltrada);
     } catch (error) {
       res.status(500).json({ message: 'Error al obtener profesores', error: error.message });
     }
@@ -123,4 +126,3 @@ router.delete(
 );
 
 module.exports = router;
-
