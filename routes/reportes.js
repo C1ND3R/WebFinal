@@ -1,74 +1,60 @@
 // routes/reportes.js
+
 const express = require('express');
-const router = express.Router();
-
-// Modelos (rutas relativas a /routes)
+const router  = express.Router();
 const TrayectoriaAsignatura = require('../models/trayectoriaAsignatura');
-const Evaluacion            = require('../models/evaluacion');
-
-// Middleware de autenticación y autorización
 const { authenticateToken, checkRole } = require('../middleware/auth');
 
 /**
  * GET /api/reportes
- * Query params:
- *   - profesor    (ObjectId)
- *   - asignatura  (ObjectId)
- *   - fechaInicio (ISO date)
- *   - fechaFin    (ISO date)
- *
- * Devuelve un listado de reportes basados en Trayectorias de Asignatura
- * con conteo de evaluaciones en el rango de fechas indicado.
+ * Query params (opcionales):
+ *   profesor    = ObjectId de Profesor
+ *   asignatura  = ObjectId de Asignatura
+ *   fechaInicio = YYYY-MM-DD
+ *   fechaFin    = YYYY-MM-DD
  */
 router.get(
   '/',
   authenticateToken,
-  checkRole(['Administrador']),
+  checkRole(['Administrador', 'Coordinador']),
   async (req, res) => {
     try {
       const { profesor, asignatura, fechaInicio, fechaFin } = req.query;
 
-      // Armar filtro para trayectorias
-      const filtroTray = { activo: true };
-      if (profesor)    filtroTray.profesor    = profesor;
-      if (asignatura)  filtroTray.asignatura  = asignatura;
+      // Montamos el filtro usando updatedAt en lugar de createdAt
+      const filtro = {};
+      if (profesor)   filtro.profesor    = profesor;
+      if (asignatura) filtro.asignatura  = asignatura;
+      if (fechaInicio || fechaFin) {
+        filtro.updatedAt = {};
+        if (fechaInicio) filtro.updatedAt.$gte = new Date(fechaInicio);
+        if (fechaFin)    filtro.updatedAt.$lte = new Date(fechaFin);
+      }
 
-      // Traer trayectorias con populate
+      // Consultamos la colección de trayectorias
       const trayectorias = await TrayectoriaAsignatura
-        .find(filtroTray)
-        .populate({ path: 'profesor', select: 'usuario' })
-        .populate({ path: 'asignatura', select: 'nombre' });
+        .find(filtro)
+        .populate({
+          path: 'profesor',
+          populate: { path: 'usuario', select: 'nombre_completo' }
+        })
+        .populate('asignatura', 'nombre')
+        .sort({ updatedAt: -1 });
 
-      // Para cada trayectoria, contar evaluaciones en el rango
-      const reportes = await Promise.all(trayectorias.map(async t => {
-        const filtroEval = { trayectoriaAsignatura: t._id };
-
-        if (fechaInicio || fechaFin) {
-          filtroEval.fecha_evaluacion = {};
-          if (fechaInicio) filtroEval.fecha_evaluacion.$gte = new Date(fechaInicio);
-          if (fechaFin)    filtroEval.fecha_evaluacion.$lte = new Date(fechaFin);
-        }
-
-        const totalEvaluaciones = await Evaluacion.countDocuments(filtroEval);
-
-        return {
-          id:          t._id,
-          titulo:      `Profesor: ${t.profesor.usuario.nombre_completo}`,
-          descripcion: `${t.asignatura.nombre} → ${totalEvaluaciones} evaluación(es)`,
-          createdAt:   t.createdAt
-        };
+      // Mapear al formato que espera el front
+      const reportes = trayectorias.map(t => ({
+        id:          t._id,
+        titulo:      `${t.profesor.usuario.nombre_completo} – ${t.asignatura.nombre}`,
+        descripcion: `Periodo ${t.periodo}, Año ${t.anio}, Grupo ${t.grupo}`,
+        createdAt:   t.updatedAt
       }));
 
       res.json(reportes);
     } catch (error) {
-      console.error('Error generando reportes:', error);
-      res.status(500).json({
-        message: 'Error al generar reportes',
-        error: error.message
-      });
+      console.error('Error en GET /api/reportes:', error);
+      res.status(500).json({ message: 'Error al generar reportes', error: error.message });
     }
   }
 );
 
 module.exports = router;
-
