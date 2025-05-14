@@ -2,7 +2,6 @@
 const mongoose = require('mongoose');
 
 const profesorSchema = new mongoose.Schema({
-  // Relación con el usuario (ya creado en admin-usuarios)
   usuario: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Usuario',
